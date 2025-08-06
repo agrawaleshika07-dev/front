@@ -1,38 +1,61 @@
 import { useState } from 'react';
 
 function App() {
-  const [text, setText] = useState('');
+  const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await fetch('http://localhost:8080/messages', {
-      method: 'POST',
-      body: text,
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'text/plain'
+    try {
+      const response = await fetch('http://localhost:8080/messages', {
+        method: 'POST',
+        body: message,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'text/plain'
+        }
+      });
+      if (response.ok) {
+        setMessage('');
       }
-    });
-    setText('');
+    } catch (error) {
+      console.error("Error submitting message:", error);
+    }
   };
 
   const handleGetMessages = async () => {
-    const response = await fetch('http://localhost:8080/messages', { credentials: 'include' });
-    const data = await response.json();
-    setMessages(data);
+    try {
+      const response = await fetch('http://localhost:8080/messages', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data);
+      }
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-      <input type="text" value={text} onChange={(e) => setText(e.target.value)} style={{ padding: '5px', border: '1px solid #ccc' }} />
-      <button onClick={handleSubmit} style={{ padding: '5px 10px', backgroundColor: '#4CAF50', color: 'white', border: 'none', cursor: 'pointer' }}>Submit</button>
-      <button onClick={handleGetMessages} style={{ padding: '5px 10px', backgroundColor: '#2196F3', color: 'white', border: 'none', cursor: 'pointer' }}>Get Messages</button>
-      <div>
-        {messages.map((message, index) => (
-          <p key={index} style={{ margin: 0 }}>{message}</p>
+    <div style={{ textAlign: 'center' }}>
+      <h1>Message Board</h1>
+      <form onSubmit={handleSubmit} style={{ marginBottom: '10px' }}>
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          style={{ padding: '5px', marginRight: '5px' }}
+        />
+        <button type="submit" style={{ padding: '5px', marginRight: '5px' }}>Submit</button>
+      </form>
+      <button onClick={handleGetMessages} style={{ padding: '5px' }}>Get Messages</button>
+      <ul style={{ listStyleType: 'none', padding: 0 }}>
+        {messages.map((msg, index) => (
+          <li key={index} style={{ padding: '5px' }}>{msg}</li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
